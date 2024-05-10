@@ -6,11 +6,13 @@ import './LoginPage.css';
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState(''); // New state for storing the error message
     const navigate = useNavigate();
 
+
     const handleLogin = async (event) => {
-        console.log("Login attempt started"); // Check if this logs when you click the button
         event.preventDefault();
+        setErrorMessage(''); // Clear previous error messages
         try {
             const response = await axios.post('http://localhost:3031/farmers/login', {
                 email,
@@ -21,30 +23,32 @@ const LoginPage = () => {
             console.log('Login successful:', token);
             navigate('/dashboard');
         } catch (error) {
-            // More robust error handling
+            let errorMessage = "An unexpected error occurred.";
             if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                console.error('Login error:', error.response.data);
+                // The server responded with a problem
+                errorMessage = error.response.data.message || 'Invalid login credentials';
             } else if (error.request) {
                 // The request was made but no response was received
-                console.error('Login error: No response received', error.request);
+                errorMessage = "No response from server. Check your network connection.";
             } else {
-                // Something happened in setting up the request that triggered an Error
-                console.error('Login error:', error.message);
+                // Something else caused the error
+                errorMessage = error.message;
             }
+            setErrorMessage(errorMessage); // Set the error message in state
         }
     };
-
+    
     return (
         <div className="login-container">
             <form className="login-form" onSubmit={handleLogin}>
                 <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
                 <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
                 <button type="submit">Login</button>
+                {errorMessage && <div className="error-message">{errorMessage}</div>} {/* Display error message */}
             </form>
         </div>
     );
+    
 };
 
 export default LoginPage;
