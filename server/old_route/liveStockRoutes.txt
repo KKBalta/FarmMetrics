@@ -1,0 +1,84 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../config/db');
+
+// Get all livestock
+router.get('/', (req, res) => {
+  db.query('SELECT * FROM live_stock', (err, results) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error retrieving livestock', error: err });
+    } else {
+      res.json({ success: true, message: 'Livestock retrieved successfully', data: results });
+    }
+  });
+});
+
+// Add new livestock
+router.post('/', (req, res) => {
+  const { eartag, farmer_id, race, gender, room, cost } = req.body;
+  db.query(
+    'INSERT INTO live_stock (eartag, farmer_id, race, gender, room, cost) VALUES (?, ?, ?, ?, ?, ?)',
+    [eartag, farmer_id, race, gender, room, cost],
+    (err, results) => {
+      if (err) {
+        res.status(500).json({ success: false, message: 'Error adding new livestock', error: err });
+      } else {
+        res.json({ success: true, message: 'Livestock added successfully', data: results });
+      }
+    }
+  );
+});
+
+// Update livestock details
+// Update livestock details
+router.put('/:eartag', (req, res) => {
+    const { farmer_id, race, gender, room, cost } = req.body;
+    const { eartag } = req.params;
+  
+    // Check if the livestock entry exists before attempting to update
+    db.query('SELECT * FROM live_stock WHERE eartag = ?', [eartag], (err, result) => {
+      if (err) {
+        res.status(500).json({ success: false, message: 'Error checking for existing livestock', error: err });
+      } else if (result.length === 0) {
+        res.status(404).json({ success: false, message: 'Livestock not found' });
+      } else {
+        // Perform the update if the entry exists
+        db.query(
+          'UPDATE live_stock SET farmer_id = ?, race = ?, gender = ?, room = ?, cost = ? WHERE eartag = ?',
+          [farmer_id, race, gender, room, cost, eartag],
+          (updateErr, updateResults) => {
+            if (updateErr) {
+              res.status(500).json({ success: false, message: 'Error updating livestock', error: updateErr });
+            } else if (updateResults.affectedRows === 0) {
+              res.status(404).json({ success: false, message: 'No changes made to livestock. Item may not exist or new data may be the same as existing data.' });
+            } else {
+              res.json({ success: true, message: 'Livestock updated successfully', data: updateResults });
+            }
+          }
+        );
+      }
+    });
+  });
+  
+
+// Delete a livestock record
+router.delete('/:eartag', (req, res) => {
+  const { eartag } = req.params;
+  db.query(
+    'DELETE FROM live_stock WHERE eartag = ?',
+    [eartag],
+    (err, results) => {
+      if (err) {
+        res.status(500).json({ success: false, message: 'Error deleting livestock', error: err });
+      } else if (results.affectedRows === 0) {
+        res.status(404).json({ success: false, message: 'Livestock not found' });
+      } else {
+        res.json({ success: true, message: 'Livestock deleted successfully' });
+      }
+    }
+  );
+});
+
+module.exports = router;
+
+    

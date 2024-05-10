@@ -1,0 +1,92 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../config/db'); // Ensure this path correctly points to your database configuration file
+
+// GET all monthly weights
+router.get('/', (req, res) => {
+  db.query('SELECT * FROM monthly_weight', (err, results) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error-retrieving-monthly-weights', error: err });
+    } else {
+      res.json({ success: true, message: 'Monthly-weights-retrieved-successfully', data: results });
+    }
+  });
+});
+
+// GET a single monthly weight by record_id
+router.get('/:record_id', (req, res) => {
+  const { record_id } = req.params;
+  db.query('SELECT * FROM monthly_weight WHERE record_id = ?', [record_id], (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error-retrieving-monthly-weight', error: err });
+    } else if (result.length === 0) {
+      res.status(404).json({ success: false, message: 'Monthly-weight-not-found' });
+    } else {
+      res.json({ success: true, message: 'Monthly-weight-retrieved-successfully', data: result });
+    }
+  });
+});
+
+// POST a new monthly weight
+router.post('/', (req, res) => {
+  const { eartag, weight } = req.body;
+  const record_date = req.body.record_date || new Date(); // Use current date if not provided
+  db.query('INSERT INTO monthly_weight (eartag, record_date, weight) VALUES (?, ?, ?)', [eartag, record_date, weight], (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error-adding-monthly-weight', error: err });
+    } else {
+      res.json({ success: true, message: 'Monthly-weight-added-successfully', data: result });
+    }
+  });
+});
+
+router.put('/:record_id', (req, res) => {
+  const { record_id } = req.params;
+  const { eartag, record_date, weight } = req.body;
+
+  let query = 'UPDATE monthly_weight SET ';
+  const queryParams = [];
+  if (eartag) {
+      query += 'eartag = ?, ';
+      queryParams.push(eartag);
+  }
+  if (record_date) {
+      query += 'record_date = ?, ';
+      queryParams.push(record_date);
+  }
+  if (weight !== undefined) {
+      query += 'weight = ?, ';
+      queryParams.push(weight);
+  }
+
+  query = query.slice(0, -2); // Removes the last comma and space
+  query += ' WHERE record_id = ?';
+  queryParams.push(record_id);
+
+  db.query(query, queryParams, (err, result) => {
+      if (err) {
+          res.status(500).json({ success: false, message: 'Error updating monthly weight', error: err });
+      } else if (result.affectedRows === 0) {
+          res.status(404).json({ success: false, message: 'Monthly weight not found' });
+      } else {
+          res.json({ success: true, message: 'Monthly weight updated successfully' });
+      }
+  });
+});
+
+
+// DELETE a monthly weight by record_id
+router.delete('/:record_id', (req, res) => {
+  const { record_id } = req.params;
+  db.query('DELETE FROM monthly_weight WHERE record_id = ?', [record_id], (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error-deleting-monthly-weight', error: err });
+    } else if (result.affectedRows === 0) {
+      res.status(404).json({ success: false, message: 'Monthly-weight-not-found' });
+    } else {
+      res.json({ success: true, message: 'Monthly-weight-deleted-successfully' });
+    }
+  });
+});
+
+module.exports = router;

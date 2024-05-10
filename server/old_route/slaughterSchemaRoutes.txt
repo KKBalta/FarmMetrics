@@ -1,0 +1,96 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../config/db'); // Ensure this path correctly points to your database configuration file
+
+// GET all slaughter entries
+router.get('/', (req, res) => {
+  db.query('SELECT * FROM slaughter_schema', (err, results) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error retrieving slaughter entries', error: err });
+    } else {
+      res.json({ success: true, message: 'Slaughter entries retrieved successfully', data: results });
+    }
+  });
+});
+
+// GET a single slaughter entry by slaughter_id
+router.get('/:slaughter_id', (req, res) => {
+  const { slaughter_id } = req.params;
+  db.query('SELECT * FROM slaughter_schema WHERE slaughter_id = ?', [slaughter_id], (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error retrieving slaughter entry', error: err });
+    } else if (result.length === 0) {
+      res.status(404).json({ success: false, message: 'Slaughter entry not found' });
+    } else {
+      res.json({ success: true, message: 'Slaughter entry retrieved successfully', data: result });
+    }
+  });
+});
+
+// POST a new slaughter entry
+router.post('/', (req, res) => {
+  const { eartag, date, carcas_weight, sale_price } = req.body;
+  db.query('INSERT INTO slaughter_schema (eartag, date, carcas_weight, sale_price) VALUES (?, ?, ?, ?)', 
+           [eartag, date || new Date(), carcas_weight, sale_price], (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error adding slaughter entry', error: err });
+    } else {
+      res.json({ success: true, message: 'Slaughter entry added successfully', data: result });
+    }
+  });
+});
+
+router.put('/:slaughter_id', (req, res) => {
+  const { slaughter_id } = req.params;
+  const { eartag, date, carcas_weight, sale_price } = req.body;
+
+  let query = 'UPDATE slaughter_schema SET ';
+  const queryParams = [];
+  if (eartag) {
+      query += 'eartag = ?, ';
+      queryParams.push(eartag);
+  }
+  if (date) {
+      query += 'date = ?, ';
+      queryParams.push(date);
+  }
+  if (carcas_weight !== undefined) {
+      query += 'carcas_weight = ?, ';
+      queryParams.push(carcas_weight);
+  }
+  if (sale_price !== undefined) {
+      query += 'sale_price = ?, ';
+      queryParams.push(sale_price);
+  }
+  
+  query = query.slice(0, -2); // Removes the last comma and space
+  query += ' WHERE slaughter_id = ?';
+  queryParams.push(slaughter_id);
+
+  db.query(query, queryParams, (err, result) => {
+      if (err) {
+          res.status(500).json({ success: false, message: 'Error updating slaughter entry', error: err });
+      } else if (result.affectedRows === 0) {
+          res.status(404).json({ success: false, message: 'Slaughter entry not found' });
+      } else {
+          res.json({ success: true, message: 'Slaughter entry updated successfully' });
+      }
+  });
+});
+
+
+// DELETE a slaughter entry by slaughter_id
+router.delete('/:slaughter_id', (req, res) => {
+  const { slaughter_id } = req.params;
+  db.query('DELETE FROM slaughter_schema WHERE slaughter_id = ?', [slaughter_id], (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error deleting slaughter entry', error: err });
+    } else if (result.affectedRows === 0) {
+      res.status(404).json({ success: false, message: 'Slaughter entry not found' });
+    } else {
+      res.json({ success: true, message: 'Slaughter entry deleted successfully' });
+    }
+  });
+});
+
+module.exports = router;

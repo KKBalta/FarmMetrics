@@ -1,0 +1,75 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const db = require('../config/db');
+
+const router = express.Router();
+
+// POST: Register (Signup) a new farmer
+router.post('/signup', async (req, res) => {
+    const { farmer_name, email, password } = req.body;
+
+    // Simple validation
+    if (!farmer_name || !email || !password) {
+        return res.status(400).send("All fields are required.");
+    }
+
+    // Check if the farmer already exists
+    db.query('SELECT email FROM farmer WHERE email = ?', [email], async (err, results) => {
+        if (err) {
+            return res.status(500).send(err.message);
+        }
+        if (results.length > 0) {
+            return res.status(409).send("Farmer already registered.");
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 8);
+
+        // Insert new farmer
+        db.query('INSERT INTO farmer (farmer_name, email, password) VALUES (?, ?, ?)', 
+                 [farmer_name, email, hashedPassword], (error, results) => {
+            if (error) {
+                return res.status(500).send(error.message);
+            }
+            const token = jwt.sign({ id: results.insertId }, 'your_jwt_secret', { expiresIn: '24h' });
+            res.status(201).send({ message: "Farmer registered successfully!", token });
+        });
+    });
+});
+
+// POST: Login a farmer
+router.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).send("Email and password are required.");
+    }
+
+    db.query('SELECT * FROM farmer WHERE email = ?', [email], async (err, results) => {
+        if (err) {
+            return res.status(500).send(err.message);
+        }
+        if (results.length === 0 || !(await bcrypt.compare(password, results[0].password))) {
+            return res.status(401).send("Invalid credentials.");
+        }
+
+        const token = jwt.sign({ id: results[0].id }, 'your_jwt_secret', { expiresIn: '24h' });
+        res.send({ message: "Login successful!", token });
+    });
+});
+
+// GET: Fetch a farmer
+router.get('/:id', (req, res) => {
+    db.query('SELECT farmer_name, email FROM farmer WHERE farmer_id = ?', [req.params.id], (err, results) => {
+        if (err) {
+            return res.status(500).send(err.message);
+        }
+        if (results.length === 0) {
+            return res.status(404).send("Farmer not found.");
+        }
+        res.send(results[0]);
+    });
+});
+
+module.exports = router;

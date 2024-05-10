@@ -1,0 +1,108 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../config/db'); // Ensure this path correctly points to your database configuration file
+
+// GET all rasyon entries
+router.get('/', (req, res) => {
+  db.query('SELECT * FROM rasyon', (err, results) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error retrieving rasyon entries', error: err });
+    } else {
+      res.json({ success: true, message: 'Rasyon entries retrieved successfully', data: results });
+    }
+  });
+});
+
+// GET a single rasyon entry by id
+router.get('/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('SELECT * FROM rasyon WHERE id = ?', [id], (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error retrieving rasyon entry', error: err });
+    } else if (result.length === 0) {
+      res.status(404).json({ success: false, message: 'Rasyon entry not found' });
+    } else {
+      res.json({ success: true, message: 'Rasyon entry retrieved successfully', data: result });
+    }
+  });
+});
+
+// POST a new rasyon entry
+router.post('/', (req, res) => {
+  const { product_name, amount, price, entrance_date, dm } = req.body;
+  db.query('INSERT INTO rasyon (product_name, amount, price, entrance_date, dm) VALUES (?, ?, ?, ?, ?)', 
+           [product_name, amount, price, entrance_date || new Date(), dm], (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error adding rasyon entry', error: err });
+    } else {
+      res.json({ success: true, message: 'Rasyon entry added successfully', data: result });
+    }
+  });
+});
+
+router.put('/:id', (req, res) => {
+  const { id } = req.params;
+  const { product_name, amount, price, entrance_date, dm } = req.body;
+
+  // Constructing SQL query dynamically based on provided fields
+  let query = 'UPDATE rasyon SET ';
+  const queryParams = [];
+  if (product_name) {
+      query += 'product_name = ?, ';
+      queryParams.push(product_name);
+  }
+  if (amount !== undefined) { // Check for undefined to allow setting amount to zero
+      query += 'amount = ?, ';
+      queryParams.push(amount);
+  }
+  if (price !== undefined) {
+      query += 'price = ?, ';
+      queryParams.push(price);
+  }
+  if (entrance_date) {
+      query += 'entrance_date = ?, ';
+      queryParams.push(entrance_date);
+  }
+  if (dm !== undefined) {
+      query += 'dm = ?, ';
+      queryParams.push(dm);
+  }
+
+  // Removing the last comma and space from the query string
+  if (queryParams.length > 0) {
+      query = query.slice(0, -2); // Removes the last comma and space
+  } else {
+      res.status(400).json({ success: false, message: 'No fields provided for update' });
+      return;
+  }
+
+  query += ' WHERE id = ?';
+  queryParams.push(id);
+
+  db.query(query, queryParams, (err, result) => {
+      if (err) {
+          res.status(500).json({ success: false, message: 'Error updating rasyon entry', error: err });
+      } else if (result.affectedRows === 0) {
+          res.status(404).json({ success: false, message: 'Rasyon entry not found' });
+      } else {
+          res.json({ success: true, message: 'Rasyon entry updated successfully', data: result });
+      }
+  });
+});
+
+
+// DELETE a rasyon entry by id
+router.delete('/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM rasyon WHERE id = ?', [id], (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false, message: 'Error deleting rasyon entry', error: err });
+    } else if (result.affectedRows === 0) {
+      res.status(404).json({ success: false, message: 'Rasyon entry not found' });
+    } else {
+      res.json({ success: true, message: 'Rasyon entry deleted successfully' });
+    }
+  });
+});
+
+module.exports = router;
