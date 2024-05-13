@@ -2,14 +2,14 @@ const express = require('express');
 const router = express.Router();
 
 const livestockController = require('../controllers/liveStockController');
-
+const authenticateToken = require('../middleware/auth');
 // Simplified private routes
-router.get('/', livestockController.getAllLivestock);
-router.get('/:eartag', livestockController.getLivestockByEartag);
-router.post('/',livestockController.addLivestock);  
-router.put('/:eartag', livestockController.updateLivestock);
-router.delete('/hard/:eartag', livestockController.hardDeleteLivestock);
-router.delete('/:eartag', livestockController.deleteLivestock);
-router.post('/:eartag/restore', livestockController.restoreLivestock);
+router.get('/',authenticateToken, livestockController.getAllLivestock);
+router.get('/:eartag',authenticateToken, livestockController.getLivestockByEartag);
+router.post('/',authenticateToken, livestockController.addLivestock);  
+router.put('/:eartag',authenticateToken, livestockController.updateLivestock);
+router.delete('/hard/:eartag',authenticateToken, livestockController.hardDeleteLivestock);
+router.delete('/:eartag',authenticateToken, livestockController.deleteLivestock);
+router.post('/:eartag/restore',authenticateToken, livestockController.restoreLivestock);
 
 module.exports = router;
