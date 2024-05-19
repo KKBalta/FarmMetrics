@@ -39,7 +39,7 @@ const LiveStock = () => {
 
   const fetchWeights = async (eartag) => {
     try {
-      const response = await API.get(`/monthlyWeights/${eartag}`); // Fetch weights by eartag
+      const response = await API.get(`/monthlyWeights/eartag/${eartag}`); // Fetch weights by eartag
       console.log('Fetched weights:', response.data); // Log fetched weights
       setWeights(response.data); // Set weights to state
       setShowWeights(true); // Show weights
@@ -59,7 +59,13 @@ const LiveStock = () => {
 
   const handleUpdate = async (e) => {
     try {
-      await API.put(`/livestock/${e.key}`, e.data); // Update live stock
+      // Merge newData with oldData to ensure all fields are present
+      const updatedData = {
+        ...e.oldData,
+        ...e.newData
+      };
+
+      await API.put(`/livestock/${e.key}`, updatedData); // Update live stock
       fetchData(); // Refresh data
     } catch (error) {
       console.error('Error updating data:', error.response || error.message || error); // Log the error details

@@ -8,6 +8,8 @@ import DataGrid, {
   Paging,
   Pager,
   SearchPanel,
+  ValidationRule,
+  RequiredRule,
 } from 'devextreme-react/data-grid';
 import { Item } from 'devextreme-react/form';
 import 'devextreme/dist/css/dx.light.css';
@@ -18,11 +20,13 @@ const Tartim = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Fetching data...');
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
+      console.log('API request to fetch data');
       const response = await API.get('/monthlyWeights'); // Fetch all weights
       console.log('Fetched data:', response.data); // Log fetched data
       setData(response.data); // Set data to state
@@ -33,60 +37,112 @@ const Tartim = () => {
     }
   };
 
-  const handleInsert = (e) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        // Format the date to 'YYYY-MM-DD'
-        const formattedData = {
-          ...e.data,
-          record_date: new Date(e.data.record_date).toISOString().split('T')[0], // Extract date part
-        };
+  const handleInsert = async (e) => {
+    try {
+      console.log('Inserting data:', e.data); // Log the incoming data
 
-        console.log('Inserting data:', formattedData); // Log the formatted data
-
-        await API.post('/monthlyWeights', formattedData); // Add new weight
-        fetchData(); // Refresh data
-        resolve(); // Resolve the promise on success
-      } catch (error) {
-        reject(); // Reject the promise on error
+      // Ensure e.data exists
+      if (!e.data) {
+        throw new Error('Invalid data');
       }
-    });
+
+      // Format the date to 'YYYY-MM-DD'
+      const formattedData = {
+        ...e.data,
+        record_date: new Date(e.data.record_date).toISOString().split('T')[0], // Extract date part
+      };
+
+      console.log('Formatted data for insertion:', formattedData); // Log the formatted data
+
+      await API.post('/monthlyWeights', formattedData); // Add new weight
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error inserting data:', error);
+      alert('Error inserting data: ' + (error.response ? error.response.data.message : error.message)); // Provide user feedback
+      e.cancel = true; // Cancel the insert operation in the DataGrid
+    }
   };
 
-  const handleUpdate = (e) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        // Format the date to 'YYYY-MM-DD'
-        const formattedData = {
-          ...e.data,
-          record_date: new Date(e.data.record_date).toISOString().split('T')[0], // Extract date part
-        };
+  const handleUpdate = async (e) => {
+    try {
+      console.log('Updating data:', e.newData); // Log the incoming new data
 
-        console.log('Updating data:', formattedData); // Log the formatted data
-
-        await API.put(`/monthlyWeights/${e.key}`, formattedData); // Use formatted data to update weight
-        fetchData(); // Refresh data
-        resolve(); // Resolve the promise on success
-      } catch (error) {
-        console.error('Error updating data:', error.response || error.message || error); // Log the error details
-        alert('Error updating data: ' + (error.response?.data?.message || error.message || 'Unknown error')); // Provide user feedback
-        reject(); // Reject the promise on error
+      // Ensure e.newData exists
+      if (!e.newData) {
+        throw new Error('Invalid data');
       }
-    });
+
+      // Merge newData with oldData to ensure all fields are present
+      const updatedData = {
+        ...e.oldData,
+        ...e.newData,
+        record_date: new Date(e.newData.record_date || e.oldData.record_date).toISOString().split('T')[0], // Extract date part
+      };
+
+      console.log('Formatted data for updating:', updatedData); // Log the updated data
+
+      await API.put(`/monthlyWeights/${e.key}`, updatedData); // Use updated data to update weight
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error updating data:', error);
+      alert('Error updating data: ' + (error.response ? error.response.data.message : error.message)); // Provide user feedback
+      e.cancel = true; // Cancel the update operation in the DataGrid
+    }
   };
 
-  const handleDelete = (e) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        await API.delete(`/monthlyWeights/${e.key}`); // Delete weight
-        fetchData(); // Refresh data
-        resolve(); // Resolve the promise on success
-      } catch (error) {
-        console.error('Error deleting data:', error.response || error.message || error); // Log the error details
-        alert('Error deleting data: ' + (error.response?.data?.message || error.message || 'Unknown error')); // Provide user feedback
-        reject(); // Reject the promise on error
+  const handleDelete = async (e) => {
+    try {
+      console.log('Deleting data with key:', e.key); // Log the key of the data to be deleted
+      await API.delete(`/monthlyWeights/${e.key}`); // Delete weight
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error deleting data:', error);
+      alert('Error deleting data: ' + (error.response ? error.response.data.message : error.message)); // Provide user feedback
+      e.cancel = true; // Cancel the delete operation in the DataGrid
+    }
+  };
+
+  const validateRow = async (e) => {
+    console.log('Validating row:', e); // Log the entire event object
+
+    // Ensure e.newData exists
+    if (!e.newData) {
+      e.isValid = false;
+      e.errorText = 'Invalid data';
+      console.error('Invalid data:', e);
+      return;
+    }
+
+    // Merge newData with oldData to ensure all fields are present for validation
+    const mergedData = {
+      ...e.oldData,
+      ...e.newData,
+    };
+
+    // Perform validation
+    const { eartag, record_date, weight } = mergedData;
+
+    if (!eartag || !record_date || !weight) {
+      e.isValid = false;
+      e.errorText = 'All fields are required';
+      console.error('Validation error: All fields are required');
+      return;
+    }
+
+    // Check if eartag exists in live stock
+    try {
+      console.log('Checking if eartag exists in live stock:', eartag);
+      const response = await API.get(`/livestock/${eartag}`);
+      if (response.status !== 200 || !response.data) {
+        e.isValid = false;
+        e.errorText = 'Eartag not found in live stock';
+        console.error('Eartag not found in live stock');
       }
-    });
+    } catch (error) {
+      e.isValid = false;
+      e.errorText = 'Error validating eartag';
+      console.error('Error validating eartag:', error);
+    }
   };
 
   return (
@@ -98,15 +154,10 @@ const Tartim = () => {
             dataSource={data} // Set data source to fetched data
             keyExpr="record_id" // Ensure this matches your primary key
             showBorders={true}
-            onRowInserting={(e) => {
-              e.cancel = handleInsert(e);
-            }}
-            onRowUpdating={(e) => {
-              e.cancel = handleUpdate(e);
-            }}
-            onRowRemoving={(e) => {
-              e.cancel = handleDelete(e);
-            }}
+            onRowInserting={handleInsert}
+            onRowUpdating={handleUpdate}
+            onRowRemoving={handleDelete}
+            onRowValidating={validateRow} // Add validation
             loading={loading}
           >
             <SearchPanel visible={true} highlightCaseSensitive={true} /> {/* Add SearchPanel */}
@@ -122,9 +173,15 @@ const Tartim = () => {
               <Popup title="Monthly Weight Info" showTitle={true} width={700} height={525} />
               <Form>
                 <Item itemType="group" colCount={2} colSpan={2}>
-                  <Item dataField="eartag" />
-                  <Item dataField="record_date" dataType="date" defaultValue={new Date().toISOString().split('T')[0]} />
-                  <Item dataField="weight" />
+                  <Item dataField="eartag">
+                    <RequiredRule message="Eartag is required" />
+                  </Item>
+                  <Item dataField="record_date" dataType="date">
+                    <RequiredRule message="Record date is required" />
+                  </Item>
+                  <Item dataField="weight">
+                    <RequiredRule message="Weight is required" />
+                  </Item>
                 </Item>
               </Form>
             </Editing>
