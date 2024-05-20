@@ -24,6 +24,17 @@ const rasyonComponentsController = {
         });
     },
 
+    getComponentsByRasyonId: (req, res) => {
+        const { rasyon_id } = req.params;
+        RasyonComponents.getComponentsByRasyonId(rasyon_id, (err, results) => {
+            if (err) {
+                res.status(500).json({ message: "Error fetching components for the rasyon", error: err });
+            } else {
+                res.status(200).json(results);
+            }
+        });
+    },
+
     addComponent: (req, res) => {
         const { rasyon_id, component_name, dm, amount, price } = req.body;
         RasyonComponents.addComponent({ rasyon_id, component_name, dm, amount, price }, (err, result) => {
@@ -34,7 +45,7 @@ const rasyonComponentsController = {
             }
         });
     },
-    
+
     updateComponent: (req, res) => {
         const { id } = req.params;
         const { rasyon_id, component_name, dm, amount, price } = req.body;

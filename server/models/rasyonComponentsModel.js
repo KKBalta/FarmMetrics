@@ -9,6 +9,10 @@ const RasyonComponents = {
         return db.query('SELECT * FROM RasyonComponents WHERE id = ?', [id], callback);
     },
 
+    getComponentsByRasyonId: function(rasyon_id, callback) {
+        return db.query('SELECT * FROM RasyonComponents WHERE rasyon_id = ?', [rasyon_id], callback);
+    },
+
     addComponent: function(component, callback) {
         return db.query(
             'INSERT INTO RasyonComponents (rasyon_id, component_name, dm, amount, price) VALUES (?, ?, ?, ?, ?)',
