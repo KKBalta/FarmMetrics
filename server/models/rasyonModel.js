@@ -2,36 +2,31 @@ const db = require('../config/db');  // Ensure this path correctly points to you
 
 const Rasyon = {
     getAllRasyons: function(callback) {
-        return db.query('SELECT * FROM rasyon', callback);
+        return db.query('SELECT * FROM Rasyon', callback);
     },
 
     getRasyonById: function(id, callback) {
-        return db.query('SELECT * FROM rasyon WHERE id = ?', [id], callback);
+        return db.query('SELECT * FROM Rasyon WHERE id = ?', [id], callback);
     },
 
-    addRasyon: function(rasyon, callback) {
+    addRasyon: function(Rasyon, callback) {
         return db.query(
-            'INSERT INTO rasyon (product_name, amount, price, entrance_date, dm) VALUES (?, ?, ?, ?, ?)',
-            [rasyon.product_name, rasyon.amount, rasyon.price, rasyon.entrance_date || new Date(), rasyon.dm], // Ensure dm is included
+            'INSERT INTO Rasyon (name, description) VALUES (?, ?)',
+            [Rasyon.name, Rasyon.description],
             callback
         );
     },
     
-    updateRasyon: function(id, rasyon, callback) {
+    updateRasyon: function(id, Rasyon, callback) {
         return db.query(
-            'UPDATE rasyon SET product_name=?, amount=?, price=?, entrance_date=?, dm=? WHERE id=?',
-            [rasyon.product_name, rasyon.amount, rasyon.price, rasyon.entrance_date, rasyon.dm, id], // Include dm in the parameters
+            'UPDATE Rasyon SET name=?, description=? WHERE id=?',
+            [Rasyon.name, Rasyon.description, id],
             callback
         );
-    },    
-
-    updateRasyonCustom: function(query, values, callback) {
-        return db.query(query, values, callback);
     },
-    
 
     deleteRasyon: function(id, callback) {
-        return db.query('DELETE FROM rasyon WHERE id = ?', [id], callback);
+        return db.query('DELETE FROM Rasyon WHERE id = ?', [id], callback);
     }
 };
 

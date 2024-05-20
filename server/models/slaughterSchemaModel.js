@@ -12,7 +12,7 @@ const SlaughterSchema = {
     addSlaughter: function(slaughter, callback) {
         return db.query(
             'INSERT INTO slaughter_schema (eartag, date, carcas_weight, sale_price) VALUES (?, ?, ?, ?)',
-            [slaughter.eartag, slaughter.date || new Date(), slaughter.carcas_weight, slaughter.sale_price],
+            [slaughter.eartag, slaughter.date, slaughter.carcas_weight, slaughter.sale_price],
             callback
         );
     },

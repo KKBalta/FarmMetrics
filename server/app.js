@@ -18,7 +18,8 @@ const liveStockRoutes = require('./routes/liveStockRoutes');
 const monthlyWeightRoutes = require('./routes/monthlyWeightRoutes');
 const rasyonRoutes = require('./routes/rasyonRoutes');
 const slaughterSchemaRoutes = require('./routes/slaughterSchemaRoutes');
-const livestockRasyonRoutes = require('./routes/livestockRasyonRoutes')
+const livestockRasyonRoutes = require('./routes/livestockRasyonRoutes');
+const rasyonComponentsRoutes = require('./routes/rasyonComponentsRoutes');  // Import the new rasyon components routes
 
 // Use routes
 app.use('/farmers', farmerRoutes);
@@ -26,7 +27,8 @@ app.use('/livestock', liveStockRoutes);
 app.use('/monthlyWeights', monthlyWeightRoutes);
 app.use('/rasyon', rasyonRoutes);
 app.use('/slaughterSchema', slaughterSchemaRoutes);
-app.use('/livestockRasyon', livestockRasyonRoutes)
+app.use('/livestockRasyon', livestockRasyonRoutes);
+app.use('/rasyonComponents', rasyonComponentsRoutes); // Add the new rasyon components route
 
 app.get('/', (req, res) => {
   res.send('Hello from the server!');
