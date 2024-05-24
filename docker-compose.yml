@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3031:3031"  # Maps port 3031 on the host to port 3031 on the container
+    environment:
+      DB_HOST: db
+      DB_USER: user
+      DB_PASS: password
+      DB_NAME: Farm2
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3030:3030"  # Maps port 3030 on the host to port 3030 on the container
+    depends_on:
+      - backend
+
+  db:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: Farm2
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
