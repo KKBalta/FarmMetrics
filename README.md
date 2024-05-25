@@ -8,7 +8,7 @@ Welcome to the FarmMetrics repository. This guide will help you get the applicat
 Before you begin, make sure you have Docker and Docker Compose installed on your machine. If you do not have Docker installed, please follow the instructions here:
 - Docker: [Get Docker](https://docs.docker.com/get-docker/)
 - Docker Compose: [Install Docker Compose](https://docs.docker.com/compose/install/)
-
+ ```
 ## Running the Application
 
 To run the FarmMetrics application, follow these steps:
