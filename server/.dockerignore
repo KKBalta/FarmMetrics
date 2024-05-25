@@ -1,2 +1,4 @@
-node_modules
-.env
+deneme/node_modules
+deneme/build
+server/node_modules
+server/forlocal.env

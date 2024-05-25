@@ -1,36 +1,39 @@
+version: '3.8'
 services:
-  backend:
-    build: ./backend
-    ports:
-      - "3031:3031"  # Maps port 3031 on the host to port 3031 on the container
-    environment:
-      DB_HOST: db
-      DB_USER: user
-      DB_PASS: password
-      DB_NAME: Farm2
-    depends_on:
-      - db
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3030:3030"  # Maps port 3030 on the host to port 3030 on the container
-    depends_on:
-      - backend
-
+  # Database service
   db:
     image: mysql:5.7
-    platform: linux/x86_64  # Ensure using x86_64 emulation on ARM64 architecture
-    ports:
-      - "3306:3306"
+    platform: linux/x86_64
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: Farm2
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password  # Password for the root user
+      MYSQL_DATABASE: Farm2          # Name of the database to be created
+      MYSQL_USER: user               # Database user
+      MYSQL_PASSWORD: password       # Database password for the user
+    ports:
+      - "3306:3306"                  # Mapping port 3306 to host
     volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - db-data:/var/lib/mysql
+      - ./Farm2.sql:/docker-entrypoint-initdb.d/init.sql  # Initialize database
+      - db-data:/var/lib/mysql                           # Persist database data
+    restart: always  # Ensures the container restarts automatically if it stops
+
+  # Backend service
+  server:
+    build: ./server  # Path to the Dockerfile in the backend directory
+    ports:
+      - "3031:3031"  # Mapping port 3031 to host
+    environment:
+      DB_HOST: db        # Database host (refers to the db service name)
+      DB_USER: user      # Database user
+      DB_PASS: password  # Database password
+      DB_NAME: Farm2     # Database name
+    depends_on:
+      - db  # Ensures that the db service is started first
+
+  # Frontend service
+  deneme:
+    build: ./deneme  # Path to the Dockerfile in the frontend directory
+    ports:
+      - "3000:3000"  # Mapping port 3000 inside the container to 3030 on the host
 
 volumes:
-  db-data:
+  db-data:  # Named volume for persisting database data
