@@ -44,7 +44,8 @@ INSERT INTO `Farmer` (`farmer_id`, `farmer_name`, `email`, `password`) VALUES
 (1, 'fatih balta', 'fatih_balta@yahoo.com', '$2a$10$y712jw62EI/sfs4R9zyEvuWRgY/D3DGhbh5p11KaOS5vvSp/QsHAu'),
 (2, 'kaanbalta', 'kaanbalta57@gmail.com', '$2a$10$XRsQj.KQ47Tinqd5Q5Tmiebttn1QM.ezfyB/BNx3EMtREet80vtmq'),
 (3, 'Cansu', 'cansubalta57@gmail.com', '$2a$10$3/3t73SV9QUNPK.FHHaYIOzMFr.qRG.Mp8gVw5X8lhpQx1R./5mzW'),
-(4, 'yildirim', 'yildirim@eta.com', '$2a$10$2aU0cPd0tCe4dypCS9/R.O6Cj0CgtDhSdtPEG4/y90nGb.vG/ugeO');
+(4, 'yildirim', 'yildirim@eta.com', '$2a$10$2aU0cPd0tCe4dypCS9/R.O6Cj0CgtDhSdtPEG4/y90nGb.vG/ugeO'),
+(5,'ahmet cuneyd tantug','tantug@itu.edu.tr','$2a$10$XRsQj.KQ47Tinqd5Q5Tmiebttn1QM.ezfyB/BNx3EMtREet80vtmq');
 
 -- --------------------------------------------------------
 
