@@ -111,7 +111,18 @@ getDailyGainAvg: (req, res) => {
     });
 },
 
-
+getWeightsByEartag: (req, res) => {
+    const { eartag } = req.params;  // Assuming eartag is passed as a URL parameter
+    MonthlyWeight.getWeightsByEartag(eartag, (err, results) => {
+        if (err) {
+            res.status(500).json({ message: "Error fetching monthly weights", error: err });
+        } else if (results.length > 0) {
+            res.status(200).json(results);
+        } else {
+            res.status(404).json({ message: "No monthly weights found for the given eartag" });
+        }
+    });
+},
     deleteWeight: (req, res) => {
         const { record_id } = req.params;
         MonthlyWeight.deleteWeight(record_id, (err, result) => {

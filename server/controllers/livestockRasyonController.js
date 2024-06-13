@@ -24,6 +24,30 @@ const livestockRasyonController = {
         });
     },
 
+    getByEartag: (req, res) => {
+        const { eartag } = req.params;
+        LivestockRasyon.getByEartag(eartag, (err, result) => {
+            if (err) {
+                res.status(500).json({ message: "Error fetching livestock rasyon by eartag", error: err });
+            } else if (result.length > 0) {
+                res.status(200).json(result[0]);
+            } else {
+                res.status(404).json({ message: "No livestock rasyon found for the given eartag" });
+            }
+        });
+    },
+
+    getAllByEartag: (req, res) => {
+        const { eartag } = req.params;
+        LivestockRasyon.getAllByEartag(eartag, (err, results) => {
+            if (err) {
+                res.status(500).json({ message: "Error fetching all rasyon records", error: err });
+            } else {
+                res.status(200).json(results);
+            }
+        });
+    },
+
     create: (req, res) => {
         const { eartag, rasyon_id } = req.body;
         LivestockRasyon.create({ eartag, rasyon_id }, (err, result) => {
@@ -34,7 +58,6 @@ const livestockRasyonController = {
             }
         });
     },
-
 
     update: (req, res) => {
         const { id } = req.params;
@@ -57,8 +80,20 @@ const livestockRasyonController = {
                 res.status(200).json({ message: "Livestock rasyon deleted successfully" });
             }
         });
+    },
+
+    changeRasyon: (req, res) => {
+        const { eartag } = req.params;
+        const { rasyon_id } = req.body;
+        const start_date = new Date(); // You can modify this to use a specific start date if needed
+        LivestockRasyon.changeRasyon(eartag, rasyon_id, start_date, (err, result) => {
+            if (err) {
+                res.status(500).json({ message: "Error changing rasyon", error: err });
+            } else {
+                res.status(200).json({ message: "Rasyon changed successfully", data: result });
+            }
+        });
     }
 };
-//CALL insert_livestock_rasyon('6944', 2, CURRENT_DATE()); when inserting new 
 
 module.exports = livestockRasyonController;

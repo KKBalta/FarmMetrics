@@ -2,19 +2,18 @@ const express = require('express');
 const router = express.Router();
 const livestockRasyonController = require('../controllers/livestockRasyonController');
 const authenticateToken = require('../middleware/auth');
-// Route to get all livestock rasyon records
-router.get('/',authenticateToken, livestockRasyonController.getAll);
 
-// Route to get a single livestock rasyon by its ID
-router.get('/:id',authenticateToken, livestockRasyonController.getById);
+// Other routes...
 
-// Route to create a new livestock rasyon record
-router.post('/',authenticateToken, livestockRasyonController.create);
+router.get('/', authenticateToken, livestockRasyonController.getAll);
+router.get('/:id', authenticateToken, livestockRasyonController.getById);
+router.get('/eartag/:eartag', authenticateToken, livestockRasyonController.getByEartag);
+router.get('/eartag/:eartag/all', authenticateToken, livestockRasyonController.getAllByEartag); // New route
+router.post('/', authenticateToken, livestockRasyonController.create);
+router.put('/:id', authenticateToken, livestockRasyonController.update);
+router.delete('/:id', authenticateToken, livestockRasyonController.delete);
 
-// Route to update a specific livestock rasyon record
-router.put('/:id',authenticateToken, livestockRasyonController.update);
-
-// Route to delete a specific livestock rasyon record
-router.delete('/:id',authenticateToken, livestockRasyonController.delete);
+// Add this route to handle changing rasyon by eartag
+router.put('/eartag/:eartag/changeRasyon', authenticateToken, livestockRasyonController.changeRasyon);
 
 module.exports = router;

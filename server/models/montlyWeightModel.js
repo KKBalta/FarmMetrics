@@ -28,7 +28,10 @@ const MonthlyWeight = {
     updateWeightCustom: function(query, values, callback) {
         return db.query(query, values, callback);
     },
-    
+
+    getWeightsByEartag: function(eartag, callback) {
+        return db.query('SELECT * FROM monthly_weight WHERE eartag = ?', [eartag], callback);
+    },
     getDailyGainAll: function(callback) {
         const sql = `
             SELECT 

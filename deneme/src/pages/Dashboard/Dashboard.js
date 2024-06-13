@@ -19,7 +19,10 @@ const LiveStock = () => {
   const [loading, setLoading] = useState(true);
   const [selectedEartag, setSelectedEartag] = useState(null);
   const [weights, setWeights] = useState([]);
-  const [showWeights, setShowWeights] = useState(false);
+  const [rasyons, setRasyons] = useState([]);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showChangeRasyon, setShowChangeRasyon] = useState(false);
+  const [newRasyonId, setNewRasyonId] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -28,7 +31,6 @@ const LiveStock = () => {
   const fetchData = async () => {
     try {
       const response = await API.get('/livestock'); // Fetch all live stock
-      console.log('Fetched data:', response.data); // Log fetched data
       setData(response.data); // Set data to state
       setLoading(false); // Set loading to false
     } catch (error) {
@@ -37,14 +39,20 @@ const LiveStock = () => {
     }
   };
 
-  const fetchWeights = async (eartag) => {
+  const fetchDetails = async (eartag) => {
+    console.log('Fetching details for eartag:', eartag);
     try {
-      const response = await API.get(`/monthlyWeights/eartag/${eartag}`); // Fetch weights by eartag
-      console.log('Fetched weights:', response.data); // Log fetched weights
-      setWeights(response.data); // Set weights to state
-      setShowWeights(true); // Show weights
+      const [weightsResponse, rasyonsResponse] = await Promise.all([
+        API.get(`/monthlyWeights/eartag/${eartag}`), // Fetch weights by eartag
+        API.get(`/livestockRasyon/eartag/${eartag}/all`) // Fetch all rasyon records by eartag
+      ]);
+      console.log('Weights response:', weightsResponse.data);
+      console.log('Rasyons response:', rasyonsResponse.data);
+      setWeights(weightsResponse.data); // Set weights to state
+      setRasyons(rasyonsResponse.data); // Set rasyons to state
+      setShowDetails(true); // Show details
     } catch (error) {
-      console.error('Error fetching weights:', error);
+      console.error('Error fetching details:', error);
     }
   };
 
@@ -78,6 +86,22 @@ const LiveStock = () => {
       fetchData(); // Refresh data
     } catch (error) {
       console.error('Error deleting data:', error.response || error.message || error); // Log the error details
+    }
+  };
+
+  const handleChangeRasyon = () => {
+    setShowChangeRasyon(true);
+  };
+
+  const submitChangeRasyon = async (e) => {
+    e.preventDefault(); // Prevent the default form submission
+    try {
+      await API.put(`/livestockRasyon/eartag/${selectedEartag}/changeRasyon`, { rasyon_id: newRasyonId });
+      setShowChangeRasyon(false);
+      setNewRasyonId(''); // Clear the input field
+      fetchDetails(selectedEartag); // Refresh details
+    } catch (error) {
+      console.error('Error changing rasyon:', error);
     }
   };
 
@@ -131,11 +155,11 @@ const LiveStock = () => {
               type="buttons"
               buttons={[
                 {
-                  hint: 'View Weights',
+                  hint: 'View Details',
                   icon: 'info',
                   onClick: (e) => {
                     setSelectedEartag(e.row.data.eartag);
-                    fetchWeights(e.row.data.eartag);
+                    fetchDetails(e.row.data.eartag);
                   }
                 },
                 'edit',
@@ -145,10 +169,11 @@ const LiveStock = () => {
           </DataGrid>
         </div>
       </div>
-      {showWeights && (
+      {showDetails && (
         <div className={'content-block'}>
-          <h2 className={'content-block'}>Weights for {selectedEartag}</h2>
+          <h2 className={'content-block'}>Details for {selectedEartag}</h2>
           <div className={'dx-card responsive-paddings'}>
+            <h3>Weights</h3>
             <DataGrid
               dataSource={weights} // Set data source to fetched weights
               keyExpr="record_id" // Ensure this matches your primary key for weights
@@ -159,7 +184,37 @@ const LiveStock = () => {
               <Column dataField="record_date" caption="Record Date" dataType="date" />
               <Column dataField="weight" caption="Weight" />
             </DataGrid>
+            <h3>Rasyon</h3>
+            <div>
+              {rasyons.length > 0 ? (
+                <ul>
+                  {rasyons.map((rasyon) => (
+                    <li key={rasyon.id}>
+                      Rasyon ID: {rasyon.rasyon_id}, Start Date: {rasyon.start_date}, End Date: {rasyon.end_date}
+                    </li>
+                  ))}
+                  <li>
+                    <button onClick={handleChangeRasyon}>Change Rasyon</button>
+                  </li>
+                </ul>
+              ) : (
+                <p>No rasyon data available.</p>
+              )}
+            </div>
           </div>
+        </div>
+      )}
+      {showChangeRasyon && (
+        <div className="popup">
+          <h3>Change Rasyon for {selectedEartag}</h3>
+          <form onSubmit={submitChangeRasyon}>
+            <label>
+              New Rasyon ID:
+              <input type="text" value={newRasyonId} onChange={(e) => setNewRasyonId(e.target.value)} />
+            </label>
+            <button type="submit">Submit</button>
+            <button type="button" onClick={() => setShowChangeRasyon(false)}>Cancel</button>
+          </form>
         </div>
       )}
     </React.Fragment>

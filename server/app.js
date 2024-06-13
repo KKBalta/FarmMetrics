@@ -20,6 +20,8 @@ const rasyonRoutes = require('./routes/rasyonRoutes');
 const slaughterSchemaRoutes = require('./routes/slaughterSchemaRoutes');
 const livestockRasyonRoutes = require('./routes/livestockRasyonRoutes');
 const rasyonComponentsRoutes = require('./routes/rasyonComponentsRoutes');  // Import the new rasyon components routes
+const groupRoutes = require('./routes/groupRoutes');  // Import the new group routes
+const liveStockGroupRoutes = require('./routes/liveStockGroupRoutes');  // Import the new live stock group routes
 
 // Use routes
 app.use('/farmers', farmerRoutes);
@@ -29,6 +31,8 @@ app.use('/rasyon', rasyonRoutes);
 app.use('/slaughterSchema', slaughterSchemaRoutes);
 app.use('/livestockRasyon', livestockRasyonRoutes);
 app.use('/rasyonComponents', rasyonComponentsRoutes); // Add the new rasyon components route
+app.use('/groups', groupRoutes); // Add the new group route
+app.use('/liveStockGroups', liveStockGroupRoutes); // Add the new live stock group route
 
 app.get('/', (req, res) => {
   res.send('Hello from the server!');
